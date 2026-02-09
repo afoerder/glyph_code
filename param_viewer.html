@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSD Parameter Comparison Viewer</title>
+    <style>
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #252540;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #3f3f5a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+        }
+
+        .controls {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            height: fit-content;
+            position: sticky;
+            top: 24px;
+        }
+
+        .controls h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .control-group .value {
+            float: right;
+            color: var(--accent);
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        select,
+        input[type="range"] {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        select:hover,
+        input[type="range"]:hover {
+            border-color: var(--accent);
+        }
+
+        select:focus,
+        input[type="range"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 8px;
+            padding: 0;
+            background: var(--bg-card);
+            border-radius: 4px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .toggle-btn:hover:not(.active) {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .filename-display {
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            word-break: break-all;
+            color: var(--text-secondary);
+            margin-top: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .image-container {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 600px;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .status {
+            padding: 16px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .status.error {
+            color: #f87171;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .tab:hover:not(.active) {
+            border-color: var(--accent);
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>LSD Parameter Comparison Viewer</h1>
+
+    <div class="container">
+        <div class="controls">
+            <h2>Parameters</h2>
+
+            <div class="control-group">
+                <label>Image</label>
+                <select id="imageSelect">
+                    <option value="Brick_Wall">Brick_Wall</option>
+                    <option value="Circuit_Board">Circuit_Board</option>
+                    <option value="Cracked_Paint">Cracked_Paint</option>
+                    <option value="Cracked_Sidewalk">Cracked_Sidewalk</option>
+                    <option value="Fence">Fence</option>
+                    <option value="Fingerprint" selected>Fingerprint</option>
+                    <option value="Hudson_Blvd">Hudson_Blvd</option>
+                    <option value="Leaf">Leaf</option>
+                    <option value="Spider_Web">Spider_Web</option>
+                    <option value="maple_leaf">maple_leaf</option>
+                </select>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="control-group">
+                <label>Blur Scales <span class="value" id="blurValue">1.0-3.0-6.0</span></label>
+                <input type="range" id="blurSlider" min="0" max="5" value="0">
+            </div>
+
+            <div class="control-group">
+                <label>Min Line Length <span class="value" id="minlenValue">40</span></label>
+                <input type="range" id="minlenSlider" min="0" max="2" value="0">
+            </div>
+
+            <div class="control-group">
+                <label>Line Thickness <span class="value" id="thickValue">5</span></label>
+                <input type="range" id="thickSlider" min="0" max="2" value="0">
+            </div>
+
+            <div class="control-group">
+                <label>Canny Boost</label>
+                <div class="toggle-group">
+                    <button class="toggle-btn" id="cannyOn">On</button>
+                    <button class="toggle-btn active" id="cannyOff">Off</button>
+                </div>
+            </div>
+
+            <div class="control-group" id="cannyLowGroup">
+                <label>Canny Low <span class="value" id="cannyLowValue">30</span></label>
+                <input type="range" id="cannyLowSlider" min="0" max="2" value="0">
+            </div>
+
+            <div class="control-group" id="cannyHighGroup">
+                <label>Canny High <span class="value" id="cannyHighValue">100</span></label>
+                <input type="range" id="cannyHighSlider" min="0" max="2" value="0">
+            </div>
+
+            <div class="control-group">
+                <label>Gap Bridge Size <span class="value" id="gapValue">5</span></label>
+                <input type="range" id="gapSlider" min="0" max="4" value="0">
+            </div>
+
+            <div class="control-group">
+                <label>Contour Refine</label>
+                <div class="toggle-group">
+                    <button class="toggle-btn" id="contourOn">On</button>
+                    <button class="toggle-btn active" id="contourOff">Off</button>
+                </div>
+            </div>
+
+            <div class="control-group" id="contourThickGroup">
+                <label>Contour Thickness <span class="value" id="contourThickValue">1</span></label>
+                <input type="range" id="contourThickSlider" min="0" max="1" value="0">
+            </div>
+
+            <div class="control-group" id="contourDilateGroup">
+                <label>Contour Dilate <span class="value" id="contourDilateValue">0</span></label>
+                <input type="range" id="contourDilateSlider" min="0" max="2" value="0">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="filename-display" id="filename">
+                Loading...
+            </div>
+        </div>
+
+        <div class="image-container">
+            <div class="tabs">
+                <button class="tab" data-type="analyzed">Analyzed</button>
+                <button class="tab active" data-type="skeleton">Skeleton</button>
+                <button class="tab" data-type="overlay">Overlay</button>
+                <button class="tab" data-type="debug">Debug Plot</button>
+            </div>
+            <div class="status" id="status">Select parameters to view</div>
+            <img id="resultImage" style="display: none;">
+        </div>
+    </div>
+
+    <script>
+        // Parameter options matching all generated images
+        const params = {
+            blur: ['0.25-0.5-1.0', '0.5-1.0-1.5', '0.5-1.0-2.0', '0.5-1.5-3.0', '1.0-2.0-4.0', '1.0-3.0-6.0'],
+            minlen: [40, 75, 100],
+            thick: [5, 6, 7],
+            cannyLow: [30, 50, 70],
+            cannyHigh: [100, 150, 200],
+            gap: [5, 7, 9, 11, 13],
+            contourThick: [1, 2],
+            contourDilate: [0, 3, 5]
+        };
+
+        let useCanny = false;
+        let useContour = false;
+        let viewType = 'skeleton';
+
+        // Elements
+        const imageSelect = document.getElementById('imageSelect');
+        const blurSlider = document.getElementById('blurSlider');
+        const minlenSlider = document.getElementById('minlenSlider');
+        const thickSlider = document.getElementById('thickSlider');
+        const cannyLowSlider = document.getElementById('cannyLowSlider');
+        const cannyHighSlider = document.getElementById('cannyHighSlider');
+        const gapSlider = document.getElementById('gapSlider');
+        const contourThickSlider = document.getElementById('contourThickSlider');
+        const contourDilateSlider = document.getElementById('contourDilateSlider');
+        const cannyOn = document.getElementById('cannyOn');
+        const cannyOff = document.getElementById('cannyOff');
+        const contourOn = document.getElementById('contourOn');
+        const contourOff = document.getElementById('contourOff');
+        const resultImage = document.getElementById('resultImage');
+        const status = document.getElementById('status');
+        const filenameDisplay = document.getElementById('filename');
+
+        function updateValueDisplays() {
+            document.getElementById('blurValue').textContent = params.blur[blurSlider.value];
+            document.getElementById('minlenValue').textContent = params.minlen[minlenSlider.value];
+            document.getElementById('thickValue').textContent = params.thick[thickSlider.value];
+            document.getElementById('cannyLowValue').textContent = params.cannyLow[cannyLowSlider.value];
+            document.getElementById('cannyHighValue').textContent = params.cannyHigh[cannyHighSlider.value];
+            document.getElementById('gapValue').textContent = params.gap[gapSlider.value];
+            document.getElementById('contourThickValue').textContent = params.contourThick[contourThickSlider.value];
+            document.getElementById('contourDilateValue').textContent = params.contourDilate[contourDilateSlider.value];
+
+            // Adjust slider max if arrays have grown
+            blurSlider.max = params.blur.length - 1;
+            minlenSlider.max = params.minlen.length - 1;
+            thickSlider.max = params.thick.length - 1;
+            cannyLowSlider.max = params.cannyLow.length - 1;
+            cannyHighSlider.max = params.cannyHigh.length - 1;
+            gapSlider.max = params.gap.length - 1;
+            contourThickSlider.max = params.contourThick.length - 1;
+            contourDilateSlider.max = params.contourDilate.length - 1;
+        }
+
+        function buildFilename() {
+            const image = imageSelect.value;
+            const blur = params.blur[blurSlider.value];
+            const minlen = params.minlen[minlenSlider.value];
+            const thick = params.thick[thickSlider.value];
+            const gap = params.gap[gapSlider.value];
+
+            let cannyStr;
+            if (useCanny) {
+                const cannyLow = params.cannyLow[cannyLowSlider.value];
+                const cannyHigh = params.cannyHigh[cannyHighSlider.value];
+                cannyStr = `canny${cannyLow}-${cannyHigh}`;
+            } else {
+                cannyStr = 'nocanny';
+            }
+
+            let contourSuffix = '';
+            if (useContour) {
+                const contourThick = params.contourThick[contourThickSlider.value];
+                const contourDilate = params.contourDilate[contourDilateSlider.value];
+                contourSuffix = `_ctr_t${contourThick}_d${contourDilate}`;
+            }
+
+            const paramSuffix = `_blur${blur}_minlen${minlen}_thick${thick}_${cannyStr}_gap${gap}${contourSuffix}`;
+
+            // Helper to handle relative paths if served from a subdirectory
+            const baseDirPrefix = window.location.pathname.includes('/glyph_code/') ? '../' : '';
+
+            if (viewType === 'analyzed') {
+                return {
+                    dir: baseDirPrefix + 'output_images_lsd',
+                    filename: `${image}_${paramSuffix}_analyzed.png`
+                };
+            } else if (viewType === 'skeleton') {
+                return {
+                    dir: baseDirPrefix + 'skeletons_lsd',
+                    filename: `${image}_${paramSuffix}_lsd_skeleton.png`
+                };
+            } else if (viewType === 'overlay') {
+                return {
+                    dir: baseDirPrefix + 'skeletons_lsd',
+                    filename: `${image}_${paramSuffix}_overlay.png`
+                };
+            } else {
+                // debug
+                return {
+                    dir: baseDirPrefix + 'skeletons_lsd',
+                    filename: `${image}_${paramSuffix}_lsd_debug_plot.png`
+                };
+            }
+        }
+
+        function updateImage() {
+            updateValueDisplays();
+
+            const { dir, filename } = buildFilename();
+            const path = `${dir}/${filename}`;
+
+            filenameDisplay.textContent = filename;
+
+            resultImage.style.display = 'none';
+            status.style.display = 'block';
+            status.className = 'status';
+            status.textContent = 'Loading...';
+
+            const img = new Image();
+            img.onload = function () {
+                resultImage.src = path;
+                resultImage.style.display = 'block';
+                status.style.display = 'none';
+            };
+            img.onerror = function () {
+                status.className = 'status error';
+                if (viewType === 'analyzed') {
+                    status.textContent = `Image not found: ${filename}\n\n(Analysis images are not generated when main_lsd.py uses flag_skip_analysis=True)`;
+                } else {
+                    status.textContent = `Image not found: ${filename}\n\n(Parameters may not match generated outputs)`;
+                }
+            };
+            img.src = path;
+        }
+
+        function toggleCanny(on) {
+            useCanny = on;
+            cannyOn.classList.toggle('active', on);
+            cannyOff.classList.toggle('active', !on);
+            document.getElementById('cannyLowGroup').style.opacity = on ? 1 : 0.4;
+            document.getElementById('cannyHighGroup').style.opacity = on ? 1 : 0.4;
+            cannyLowSlider.disabled = !on;
+            cannyHighSlider.disabled = !on;
+            updateImage();
+        }
+
+        function toggleContour(on) {
+            useContour = on;
+            contourOn.classList.toggle('active', on);
+            contourOff.classList.toggle('active', !on);
+            document.getElementById('contourThickGroup').style.opacity = on ? 1 : 0.4;
+            document.getElementById('contourDilateGroup').style.opacity = on ? 1 : 0.4;
+            contourThickSlider.disabled = !on;
+            contourDilateSlider.disabled = !on;
+            updateImage();
+        }
+
+        // Event listeners
+        imageSelect.addEventListener('change', updateImage);
+        blurSlider.addEventListener('input', updateImage);
+        minlenSlider.addEventListener('input', updateImage);
+        thickSlider.addEventListener('input', updateImage);
+        cannyLowSlider.addEventListener('input', updateImage);
+        cannyHighSlider.addEventListener('input', updateImage);
+        gapSlider.addEventListener('input', updateImage);
+        contourThickSlider.addEventListener('input', updateImage);
+        contourDilateSlider.addEventListener('input', updateImage);
+        cannyOn.addEventListener('click', () => toggleCanny(true));
+        cannyOff.addEventListener('click', () => toggleCanny(false));
+        contourOn.addEventListener('click', () => toggleContour(true));
+        contourOff.addEventListener('click', () => toggleContour(false));
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function () {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                viewType = this.dataset.type;
+                updateImage();
+            });
+        });
+
+        // Initialize display and sliders
+        updateValueDisplays();
+        toggleCanny(false);
+        toggleContour(false);
+        updateImage();
+    </script>
+</body>
+
+</html>

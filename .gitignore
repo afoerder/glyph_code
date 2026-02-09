@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Large generated outputs (keep out of git by default)
+skeletons_lsd/
+output_images_lsd/
+ocr_debug/
+grayscale_resized/
+output_images_binary/
+skeletons_bin/
+
+# Optional local envs
+.venv/
+venv/
