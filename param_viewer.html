@@ -429,7 +429,7 @@
             const paramSuffix = `_blur${blur}_minlen${minlen}_thick${thick}_${cannyStr}_gap${gap}${contourSuffix}`;
 
             // Helper to handle relative paths if served from a subdirectory
-            const baseDirPrefix = window.location.pathname.includes('/glyph_code/') ? '../' : '';
+            const baseDirPrefix = '';
 
             if (viewType === 'analyzed') {
                 return {
